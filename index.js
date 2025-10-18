@@ -130,7 +130,7 @@ bot.onText(/\/start(?: (.+))?/, (msg, match) => {
       db.run('UPDATE users SET referred_by = ? WHERE tg_id = ? AND referred_by IS NULL', [payload, msg.from.id]);
     }
     const rates = getConfiguredRates();
-    const reply = `Hello ${msg.from.first_name || ''} — welcome!\n\nAvailable fiat: USD / EUR / GBP\nSell USDT (ERC20 / TRC20). Minimum: ${MIN_USDT} USDT, Maximum: ${MAX_USDT} USDT.\n\nCurrent rates (per 1 USDT):\nUSD: ${rates.usd}\nEUR: ${rates.eur}\nGBP: ${rates.gbp}\n\nUse the menu:`,
+    const reply = `Hello ${msg.from.first_name || ''} — welcome!\n\nAvailable fiat: USD / EUR / GBP\nSell USDT (ERC.20 / TRC.20). Minimum: ${MIN_USDT} USDT, Maximum: ${MAX_USDT} USDT.\n\nCurrent rates (per 1 USDT):\nUSD: ${rates.usd}\nEUR: ${rates.eur}\nGBP: ${rates.gbp}\n\nUse the menu:`,
     opts = {
       reply_markup: {
         inline_keyboard: [
@@ -147,7 +147,7 @@ bot.onText(/\/start(?: (.+))?/, (msg, match) => {
 bot.on('callback_query', async (q) => {
   const chatId = q.message.chat.id;
   if (q.data === 'help') {
-    return bot.sendMessage(chatId, `Choose Sell USDT -> choose fiat and payment method -> provide payment details -> deposit USDT via ERC20/TRC20.\nReferral: share your /start <code> link. Each successful refer gives 1.5 USDT (withdrawable after balance >= 50 USDT).`);
+    return bot.sendMessage(chatId, `Choose Sell USDT -> choose fiat and payment method -> provide payment details -> deposit USDT via ERC.20/TRC.20.\nReferral: share your /start <code> link. Each successful refer gives 1.5 USDT (withdrawable after balance >= 50 USDT).`);
   }
   if (q.data === 'referral') {
     db.get('SELECT * FROM users WHERE tg_id = ?', [q.from.id], (err, row) => {
@@ -257,18 +257,18 @@ bot.on('message', async (msg) => {
     if (!fiatPerUsdt) fiatPerUsdt = rates.usd;
     const payoutFiat = (fiatPerUsdt * amount).toFixed(2);
 
-    // Create CoinPayments transaction to provide deposit address (USDT ERC20/TRC20)
+    // Create CoinPayments transaction to provide deposit address (USDT ERC.20/TRC.20)
     // We'll ask user network choice:
-    const keyboard = { reply_markup: { inline_keyboard: [[{text:'ERC20', callback_data:'net_ERC20'},{text:'TRC20', callback_data:'net_TRC20'}]] } };
+    const keyboard = { reply_markup: { inline_keyboard: [[{text:'ERC.20', callback_data:'net_ERC.20'},{text:'TRC.20', callback_data:'net_TRC.20'}]] } };
     ctx.step = 'choose_network';
-    return bot.sendMessage(chatId, `You will receive ${payoutFiat} ${ctx.fiat} via ${ctx.method}. Now choose deposit network (ERC20 or TRC20):`, keyboard);
+    return bot.sendMessage(chatId, `You will receive ${payoutFiat} ${ctx.fiat} via ${ctx.method}. Now choose deposit network (ERC.20 or TRC.20):`, keyboard);
   }
 });
 
 // Network callback to create payment
 bot.on('callback_query', async (q) => {
   if (!q.data.startsWith('net_')) return;
-  const net = q.data.split('_')[1]; // ERC20 or TRC20
+  const net = q.data.split('_')[1]; // ERC.20 or TRC.20
   const ctx = global.pending && global.pending[q.from.id];
   if (!ctx || !ctx.amount) return bot.sendMessage(q.message.chat.id, 'Session expired.');
   // create CoinPayments transaction for USDT on chosen network
